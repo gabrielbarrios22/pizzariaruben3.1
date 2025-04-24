@@ -39,7 +39,7 @@ menu.addEventListener("click", function (event) {
     const sizeSelectId = parentButton.getAttribute("data-size-id");
     const sizeSelect = document.getElementById(sizeSelectId);
     const fatiasId = parentButton.getAttribute("data-fatias-id");
-    const fatiasElement = document.getElementById(fatiasId);
+    const fatiasElement = fatiasId ? document.getElementById(fatiasId) : null;
     const fatias = fatiasElement ? fatiasElement.textContent.trim() : "";
 
     if (sizeSelect) {
@@ -47,43 +47,100 @@ menu.addEventListener("click", function (event) {
       const price = parseFloat(selectedOption.getAttribute("data-price"));
       const size = selectedOption.value;
 
-      // 👇 Pegando o container de sabores corretamente
+      // 👇 Lógica segura para pegar os sabores
       const saboresContainerId = parentButton.getAttribute("data-sabores-id");
-      const container = document.getElementById(saboresContainerId);
-      const sabores = Array.from(container.children).map(span =>
-        span.textContent.trim().replace("x", "").trim()
-      );
+      let sabores = [];
 
-      // 👉 Adiciona ao carrinho com sabores e fatias
+      if (saboresContainerId) {
+        const container = document.getElementById(saboresContainerId);
+        if (container) {
+          sabores = Array.from(container.children).map((span) =>
+            span.textContent.trim().replace("x", "").trim()
+          );
+
+          // ✅ Limpa a interface dos sabores
+          container.innerHTML = "";
+
+          // ✅ Limpa o array interno dos sabores selecionados
+          const pizzaId = parentButton.getAttribute("data-pizza-id");
+          if (pizzaId && saboresSelecionados[pizzaId]) {
+            saboresSelecionados[pizzaId] = [];
+            updateSaboresUI(pizzaId);
+          }
+        }
+      }
+
+      // 👉 Adiciona ao carrinho
       addToCart(name, price, size, sabores, fatias);
 
-      // ✅ Limpa a interface dos sabores
-      container.innerHTML = "";
-
-      // ✅ Limpa o array interno dos sabores selecionados
-      const pizzaId = parentButton.getAttribute("data-pizza-id");
-      if (pizzaId && saboresSelecionados[pizzaId]) {
-        saboresSelecionados[pizzaId] = [];
-      }
-
-      // ✅ Atualiza o UI (caso tenha alguma interface adicional mostrando seleção)
-      if (pizzaId) {
-        updateSaboresUI(pizzaId);
-      }
-
-      // ✅ (Opcional) Feedback ao usuário
+      // ✅ Feedback ao usuário
       Toastify({
         text: "Pizza adicionada ao carrinho!",
         duration: 2000,
         gravity: "top",
         position: "right",
         style: {
-          background: "#22c55e", // verde
+          background: "#22c55e",
         },
       }).showToast();
     }
   }
 });
+
+
+// menu.addEventListener("click", function (event) {
+//   let parentButton = event.target.closest(".add-to-cart-btn");
+
+//   if (parentButton) {
+//     const name = parentButton.getAttribute("data-name");
+//     const sizeSelectId = parentButton.getAttribute("data-size-id");
+//     const sizeSelect = document.getElementById(sizeSelectId);
+//     const fatiasId = parentButton.getAttribute("data-fatias-id");
+//     const fatiasElement = document.getElementById(fatiasId);
+//     const fatias = fatiasElement ? fatiasElement.textContent.trim() : "";
+
+//     if (sizeSelect) {
+//       const selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
+//       const price = parseFloat(selectedOption.getAttribute("data-price"));
+//       const size = selectedOption.value;
+
+//       // 👇 Pegando o container de sabores corretamente
+//       const saboresContainerId = parentButton.getAttribute("data-sabores-id");
+//       const container = document.getElementById(saboresContainerId);
+//       const sabores = Array.from(container.children).map(span =>
+//         span.textContent.trim().replace("x", "").trim()
+//       );
+
+//       // 👉 Adiciona ao carrinho com sabores e fatias
+//       addToCart(name, price, size, sabores, fatias);
+
+//       // ✅ Limpa a interface dos sabores
+//       container.innerHTML = "";
+
+//       // ✅ Limpa o array interno dos sabores selecionados
+//       const pizzaId = parentButton.getAttribute("data-pizza-id");
+//       if (pizzaId && saboresSelecionados[pizzaId]) {
+//         saboresSelecionados[pizzaId] = [];
+//       }
+
+//       // ✅ Atualiza o UI (caso tenha alguma interface adicional mostrando seleção)
+//       if (pizzaId) {
+//         updateSaboresUI(pizzaId);
+//       }
+
+//       // ✅ (Opcional) Feedback ao usuário
+//       Toastify({
+//         text: "Pizza adicionada ao carrinho!",
+//         duration: 2000,
+//         gravity: "top",
+//         position: "right",
+//         style: {
+//           background: "#22c55e", // verde
+//         },
+//       }).showToast();
+//     }
+//   }
+// });
 
 function addToCart(name, price, size, sabores = [], fatias = "") {
   const existingItem = cart.find(
